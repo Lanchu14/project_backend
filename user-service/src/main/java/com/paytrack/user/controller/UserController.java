@@ -49,17 +49,12 @@ public class UserController {
             Principal principal,
             @Valid @RequestBody UserUpdateRequest request) {
 
-        User user = User.builder()
-                .email(request.getEmail())
-                .phone(request.getPhone())
-                .city(request.getCity())
-                .monthlyBudget(
-                        request.getMonthlyBudget()
-                )
-                .savingsGoal(
-                        request.getSavingsGoal()
-                )
-                .build();
+    	User user = User.builder()
+    	        .phone(request.getPhone())
+    	        .city(request.getCity())
+    	        .monthlyBudget(request.getMonthlyBudget())
+    	        .savingsGoal(request.getSavingsGoal())
+    	        .build();
 
         return service.updateProfile(
                 principal.getName(),

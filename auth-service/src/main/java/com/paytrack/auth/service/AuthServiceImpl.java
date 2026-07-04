@@ -95,6 +95,7 @@ public class AuthServiceImpl implements AuthService {
                 .role(Role.ROLE_USER)
 
                 .passwordResetRequired(false)
+                .active(true)
                 .build();
 
         repository.save(user);

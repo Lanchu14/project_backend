@@ -54,57 +54,110 @@ public class UserServiceImpl implements UserService {
                         ));
     }
 
-    /* ================= UPDATE PROFILE ================= */
-
     @Override
-    public User updateProfile(
-            String username,
-            User user) {
+    public User updateProfile(String username, User user) {
 
-        User existing =
-                repository.findByUsername(username)
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        USER_NOT_FOUND
-                                ));
+        User existing = repository.findByUsername(username)
+                .orElseThrow(() ->
+                        new RuntimeException(USER_NOT_FOUND));
 
-        // Update only allowed fields
+        // Phone
         if (user.getPhone() != null) {
 
-            existing.setPhone(
-                    user.getPhone()
-            );
+            if (!user.getPhone().matches("\\d{10}")) {
+
+                throw new RuntimeException(
+                        "Phone number must contain exactly 10 digits."
+                );
+
+            }
+
+            existing.setPhone(user.getPhone());
+
         }
 
+        // City
         if (user.getCity() != null) {
 
-            existing.setCity(
-                    user.getCity()
-            );
+            if (user.getCity().trim().isEmpty()) {
+
+                throw new RuntimeException(
+                        "City cannot be empty."
+                );
+
+            }
+
+            existing.setCity(user.getCity().trim());
+
         }
 
+        // Budget
         if (user.getMonthlyBudget() != null) {
+
+            if (user.getMonthlyBudget() < 0) {
+
+                throw new RuntimeException(
+                        "Monthly Budget cannot be negative."
+                );
+
+            }
+
+            Double spent =
+                    existing.getMonthlyBudget()
+                            - existing.getRemainingBudget();
+
+            if (user.getMonthlyBudget() < spent) {
+
+                throw new RuntimeException(
+                        "Budget cannot be less than current expenses."
+                );
+
+            }
 
             existing.setMonthlyBudget(
                     user.getMonthlyBudget()
             );
 
-            // Reset remaining budget
             existing.setRemainingBudget(
-                    user.getMonthlyBudget()
+                    user.getMonthlyBudget() - spent
             );
+
         }
 
+        // Savings Goal
         if (user.getSavingsGoal() != null) {
+
+            if (user.getSavingsGoal() < 0) {
+
+                throw new RuntimeException(
+                        "Savings Goal cannot be negative."
+                );
+
+            }
+
+            Double budget = user.getMonthlyBudget() != null
+                    ? user.getMonthlyBudget()
+                    : existing.getMonthlyBudget();
+
+            if (user.getSavingsGoal() > budget) {
+
+                throw new RuntimeException(
+                        "Savings Goal cannot be greater than Monthly Budget."
+                );
+
+            }
 
             existing.setSavingsGoal(
                     user.getSavingsGoal()
             );
+
         }
 
-        return repository.save(existing);
-    }
+        existing.setProfileCompleted(true);
 
+        return repository.save(existing);
+
+    }
     /* ================= DEDUCT BUDGET ================= */
 
     @Override

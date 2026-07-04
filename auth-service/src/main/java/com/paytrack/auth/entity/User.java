@@ -32,4 +32,6 @@ public class User {
     
     private LocalDateTime tempPasswordExpiry;
    
+    @Builder.Default
+    private boolean active = true;
 }

@@ -9,14 +9,14 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AdminUserResponse {
+public class AdminDashboardResponse {
 
-    private Long id;
+    private long totalUsers;
 
-    private String username;
+    private long activeUsers;
 
-    private String email;
+    private long inactiveUsers;
 
-    private boolean active;
+    private long totalAdmins;
 
 }
