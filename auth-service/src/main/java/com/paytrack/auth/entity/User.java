@@ -32,6 +32,11 @@ public class User {
     
     private LocalDateTime tempPasswordExpiry;
    
-    @Builder.Default
+
+    
+    
+    @Column(nullable = false)
     private boolean active = true;
+
+    private LocalDateTime lastLogin;
 }

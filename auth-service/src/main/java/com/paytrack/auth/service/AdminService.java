@@ -7,7 +7,6 @@ import com.paytrack.auth.dto.AdminUserResponse;
 
 public interface AdminService {
 
-
     AdminDashboardResponse getDashboard();
 
     List<AdminUserResponse> getAllUsers();

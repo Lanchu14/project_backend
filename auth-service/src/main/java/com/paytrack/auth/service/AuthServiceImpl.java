@@ -47,6 +47,7 @@ public class AuthServiceImpl implements AuthService {
     // Reusable SecureRandom
     private static final SecureRandom RANDOM =
             new SecureRandom();
+    
 
     /* ================= DEPENDENCIES ================= */
 
@@ -96,6 +97,7 @@ public class AuthServiceImpl implements AuthService {
 
                 .passwordResetRequired(false)
                 .active(true)
+                .lastLogin(null)
                 .build();
 
         repository.save(user);
@@ -120,12 +122,23 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public LoginResponse login(LoginRequest request) {
 
-        User user = repository.findByUsername(
-                request.getUsername()
-        ).orElseThrow(() ->
-                new RuntimeException(
-                        USER_NOT_FOUND));
+        User user = repository.findByUsername(request.getUsername())
+                .orElseThrow(() ->
+                        new RuntimeException(USER_NOT_FOUND));
 
+        /*
+         * USER ACCOUNT STATUS CHECK
+         */
+        if (!user.isActive()) {
+
+            throw new IllegalArgumentException(
+                    "Your account has been deactivated by the administrator. Please contact the administrator for activation."
+            );
+        }
+
+        /*
+         * PASSWORD CHECK
+         */
         if (!encoder.matches(
                 request.getPassword(),
                 user.getPassword())) {
@@ -134,28 +147,36 @@ public class AuthServiceImpl implements AuthService {
                     INVALID_CREDENTIALS);
         }
 
-        // TEMP PASSWORD EXPIRY CHECK
+        /*
+         * TEMP PASSWORD EXPIRY CHECK
+         */
         if (user.isPasswordResetRequired()
                 && user.getTempPasswordExpiry() != null
                 && user.getTempPasswordExpiry()
-                .isBefore(LocalDateTime.now())) {
+                        .isBefore(LocalDateTime.now())) {
 
             throw new IllegalArgumentException(
                     TEMP_PASSWORD_EXPIRED);
         }
 
-        // GENERATE JWT TOKEN WITH ROLE
+        /*
+         * SAVE LAST LOGIN TIME
+         */
+        user.setLastLogin(LocalDateTime.now());
+
+        repository.save(user);
+
+        /*
+         * GENERATE JWT TOKEN
+         */
         String token = jwtUtil.generateToken(
                 user.getUsername(),
-                user.getRole().name()
-        );
+                user.getRole().name());
 
-        // RETURN ROLE TO FRONTEND
         return new LoginResponse(
                 token,
                 user.isPasswordResetRequired(),
-                user.getRole().name()
-        );
+                user.getRole().name());
     }
 
     /* ================= FORGOT PASSWORD ================= */

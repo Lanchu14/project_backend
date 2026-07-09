@@ -1,5 +1,7 @@
 package com.paytrack.auth.dto;
 
+import java.time.LocalDateTime;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,5 +20,7 @@ public class AdminUserResponse {
     private String email;
 
     private boolean active;
+
+    private LocalDateTime lastLogin;
 
 }

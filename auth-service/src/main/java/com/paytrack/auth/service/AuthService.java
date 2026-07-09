@@ -1,6 +1,9 @@
 package com.paytrack.auth.service;
 
-import com.paytrack.auth.dto.*;
+import com.paytrack.auth.dto.LoginRequest;
+import com.paytrack.auth.dto.LoginResponse;
+import com.paytrack.auth.dto.RegisterRequest;
+import com.paytrack.auth.dto.ResetPasswordRequest;
 import com.paytrack.auth.entity.User;
 
 public interface AuthService {

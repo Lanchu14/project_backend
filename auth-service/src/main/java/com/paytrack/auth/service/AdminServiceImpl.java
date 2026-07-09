@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.paytrack.auth.dto.AdminDashboardResponse;
 import com.paytrack.auth.dto.AdminUserResponse;
+import com.paytrack.auth.dto.UserDeactivationMessage;
 import com.paytrack.auth.entity.Role;
 import com.paytrack.auth.entity.User;
 import com.paytrack.auth.repository.UserRepository;
@@ -21,7 +22,8 @@ public class AdminServiceImpl implements AdminService {
 
     private final UserRepository repository;
 
-    /* ================= DASHBOARD ================= */
+    private final UserDeactivationProducer deactivationProducer;
+
 
     @Override
     public AdminDashboardResponse getDashboard() {
@@ -45,7 +47,7 @@ public class AdminServiceImpl implements AdminService {
                 .build();
     }
 
-    /* ================= GET ALL USERS ================= */
+ 
 
     @Override
     public List<AdminUserResponse> getAllUsers() {
@@ -56,37 +58,56 @@ public class AdminServiceImpl implements AdminService {
                 .toList();
     }
 
-    /* ================= ACTIVATE USER ================= */
-
-    @Override
-    public void activateUser(Long id) {
-
-        User user = repository.findById(id)
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                USER_NOT_FOUND));
-
-        user.setActive(true);
-
-        repository.save(user);
-    }
-
-    /* ================= DEACTIVATE USER ================= */
+ 
 
     @Override
     public void deactivateUser(Long id) {
 
         User user = repository.findById(id)
                 .orElseThrow(() ->
-                        new RuntimeException(
-                                USER_NOT_FOUND));
+                        new RuntimeException(USER_NOT_FOUND));
+
+        /*
+         * ==========================================
+         * ENABLE THIS LATER
+         * ==========================================
+         *
+         * if(user.getLastLogin()!=null){
+         *
+         * long days =
+         * Duration.between(
+         * user.getLastLogin(),
+         * LocalDateTime.now())
+         * .toDays();
+         *
+         * if(days < 30){
+         *
+         * throw new RuntimeException(
+         * "User has not been inactive for 30 days.");
+         *
+         * }
+         *
+         * }
+         */
 
         user.setActive(false);
 
         repository.save(user);
-    }
 
-    /* ================= MAPPER ================= */
+        UserDeactivationMessage message =
+                new UserDeactivationMessage(
+
+                        user.getEmail(),
+
+                        user.getUsername(),
+
+                        "admin@paytrack.com"
+
+                );
+
+        deactivationProducer.send(message);
+
+    }
 
     private AdminUserResponse mapToResponse(User user) {
 
@@ -95,7 +116,22 @@ public class AdminServiceImpl implements AdminService {
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .active(user.isActive())
+                .lastLogin(user.getLastLogin())
                 .build();
     }
 
+
+
+    @Override
+    public void activateUser(Long id) {
+
+        User user = repository.findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException(USER_NOT_FOUND));
+
+        user.setActive(true);
+
+        repository.save(user);
+
+    }
 }
